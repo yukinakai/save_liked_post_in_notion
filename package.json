@@ -12,8 +12,8 @@
     "build": "npm run clean && npm run bundle && ncp appsscript.json dist/appsscript.json",
     "license": "license-check-and-add add -f license-config.json",
     "test": "jest test/ --passWithNoTests --detectOpenHandles",
-    "deploy": "npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json && clasp push -f",
-    "deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push"
+    "deploy": "npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json && clasp push -f -A ~/.clasprc-work.json",
+    "deploy:prod": "npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push  -A ~/.clasprc-work.json"
   },
   "engines": {
     "node": ">=12"
@@ -38,6 +38,10 @@
     "rollup-plugin-prettier": "^4.1.1",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.7.3"
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/prettier": "^3.0.0"
   }
 }

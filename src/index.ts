@@ -15,6 +15,12 @@
  */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+interface PostEvent {
+  postData: {
+    contents: string;
+  };
+}
+
 interface WebhookRequest {
   text: string;
   userName: string;
@@ -26,6 +32,7 @@ interface WebhookRequest {
 interface WebhookResponse {
   success?: boolean;
   error?: string;
+  statusCode?: number;
 }
 
 function validateRequest(request: WebhookRequest): string | null {
@@ -42,17 +49,21 @@ function validateRequest(request: WebhookRequest): string | null {
   return null;
 }
 
-function createResponse(code: number, body: WebhookResponse): GoogleAppsScript.Content.TextOutput {
+function createResponse(
+  code: number,
+  body: WebhookResponse
+): GoogleAppsScript.Content.TextOutput {
   const response = ContentService.createTextOutput();
   response.setMimeType(ContentService.MimeType.JSON);
+  body.statusCode = code;
   response.setContent(JSON.stringify(body));
-  // @ts-ignore
-  response.setResponseCode(code);
   return response;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function doPost(e: any): GoogleAppsScript.Content.TextOutput {
+function doPost(e: PostEvent): GoogleAppsScript.Content.TextOutput {
+  if (!e || !e.postData || !e.postData.contents) {
+    return createResponse(400, { error: 'No data received' });
+  }
   console.log('Received webhook request:', e.postData.contents);
 
   try {

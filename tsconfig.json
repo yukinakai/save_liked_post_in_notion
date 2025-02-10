@@ -13,7 +13,8 @@
     "rootDir": ".",
     "resolveJsonModule": true,
     "allowUnreachableCode": false,
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "types": ["node", "jest", "google-apps-script"]
   },
-  "include": ["src/**/*", "test/**/*", "rollup.config.mjs"]
+  "include": ["src/**/*", "test/**/*"]
 }

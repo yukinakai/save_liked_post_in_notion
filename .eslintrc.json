@@ -13,7 +13,11 @@
   },
   "plugins": ["prettier"],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-require-imports": "off",
+    "no-var": "off"
   },
   "ignorePatterns": ["template/**/*", "template-ui/**/*"]
 }
