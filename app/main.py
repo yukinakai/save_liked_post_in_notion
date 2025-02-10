@@ -15,9 +15,6 @@ app = FastAPI(
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
 )
 
-# NotionServiceのインスタンスを作成
-notion_service = NotionService()
-
 class TweetRequest(BaseModel):
     text: str = Field(..., description="The text content of the tweet")
     userName: str = Field(..., description="The username of the tweet author")
@@ -50,6 +47,7 @@ async def webhook_post(tweet: TweetRequest):
     
     try:
         # Notionにページを作成
+        notion_service = NotionService()
         notion_page = notion_service.create_page({
             "userName": tweet.userName,
             "text": tweet.text,

@@ -5,7 +5,6 @@ from typing import Dict, Any
 from app.services.notion_service import NotionService
 
 router = APIRouter()
-notion_service = NotionService()
 
 class NotionPageCreate(BaseModel):
     userName: str
@@ -19,6 +18,7 @@ async def create_page(page: NotionPageCreate) -> Dict[str, Any]:
     Notionデータベースに新しいページを作成します
     """
     try:
+        notion_service = NotionService()
         return notion_service.create_page(page.dict())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
