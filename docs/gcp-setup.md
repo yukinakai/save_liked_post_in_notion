@@ -8,7 +8,7 @@
 - Google Cloud CLIがインストールされていること
 - プロジェクトのローカル開発環境が整っていること
 
-## 1. GCPプロジェクトの作成
+## 1. GCPプロジェクトの作成と請求先設定
 
 1. Google Cloud Consoleにアクセスし、新しいプロジェクトを作成します：
 
@@ -19,6 +19,15 @@ gcloud projects create save-liked-post-notion --name="Save Liked Post in Notion"
 # プロジェクトの設定
 gcloud config set project save-liked-post-notion
 ```
+
+2. 請求先アカウントの設定：
+
+- [Google Cloud Console](https://console.cloud.google.com/billing)にアクセス
+- 「請求先アカウントをリンク」をクリック
+- 既存の請求先アカウントを選択するか、新しい請求先アカウントを作成
+- プロジェクトと請求先アカウントをリンク
+
+注意：GCPの一部のサービスは有料です。料金の詳細は[Google Cloud の料金](https://cloud.google.com/pricing)を参照してください。新規アカウントには無料枠があり、多くの場合、開発やテスト目的での使用であれば無料枠内で収まります。
 
 ## 2. 必要なAPIの有効化
 
