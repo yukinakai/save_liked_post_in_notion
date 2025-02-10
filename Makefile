@@ -24,10 +24,17 @@ clean:
 	find . -type d -name "htmlcov" -exec rm -r {} +
 
 # Deploy to Cloud Run
-deploy:
-	gcloud run deploy $(SERVICE_NAME) \
-		--source . \
-		--region $(REGION) \
-		--platform managed \
-		--allow-unauthenticated \
-		--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com
+deploy: test
+	@echo "Running unit tests before deployment..."
+	@if [ $$? -eq 0 ]; then \
+		echo "Tests passed. Proceeding with deployment..."; \
+		gcloud run deploy $(SERVICE_NAME) \
+			--source . \
+			--region $(REGION) \
+			--platform managed \
+			--allow-unauthenticated \
+			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com; \
+	else \
+		echo "Tests failed. Deployment aborted."; \
+		exit 1; \
+	fi
