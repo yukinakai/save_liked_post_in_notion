@@ -24,3 +24,19 @@ def test_create_page_with_invalid_data():
     }
     with pytest.raises(ValueError):
         notion_service.create_page(invalid_data)
+
+def test_add_tweet_embed_code():
+    """ツイート埋め込みコードの追加テスト"""
+    notion_service = NotionService()
+    
+    # テスト用のページIDとツイート埋め込みコード
+    page_id = "test_page_id"
+    tweet_embed_code = '<blockquote class="twitter-tweet">...</blockquote>'
+    
+    # 無効なページIDでテスト
+    with pytest.raises(ValueError):
+        notion_service.add_tweet_embed_code("", tweet_embed_code)
+    
+    # 無効な埋め込みコードでテスト
+    with pytest.raises(ValueError):
+        notion_service.add_tweet_embed_code(page_id, "")

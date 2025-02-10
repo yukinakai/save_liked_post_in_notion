@@ -55,6 +55,12 @@ async def webhook_post(tweet: TweetRequest):
             "createdAt": tweet.createdAt
         })
         
+        # ツイート埋め込みコードを追加
+        notion_service.add_tweet_embed_code(
+            page_id=notion_page["id"],
+            tweet_embed_code=tweet.tweetEmbedCode
+        )
+        
         # NotionページのIDを返す
         return TweetResponse(id=notion_page["id"])
     except ValueError as e:

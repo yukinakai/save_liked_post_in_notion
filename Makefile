@@ -5,8 +5,15 @@ SERVICE_NAME := webhook-service
 REGION := asia-northeast1
 
 # Local development
-run-local:
-	uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+run-local: test
+	@echo "Running unit tests before starting local server..."
+	@if [ $$? -eq 0 ]; then \
+		echo "Tests passed. Starting local server..."; \
+		uvicorn app.main:app --reload --host 0.0.0.0 --port 8080; \
+	else \
+		echo "Tests failed. Local server start aborted."; \
+		exit 1; \
+	fi
 
 test:
 	pytest
@@ -28,12 +35,15 @@ deploy: test
 	@echo "Running unit tests before deployment..."
 	@if [ $$? -eq 0 ]; then \
 		echo "Tests passed. Proceeding with deployment..."; \
+		echo "Loading environment variables from .env file..."; \
+		$(eval include .env) \
 		gcloud run deploy $(SERVICE_NAME) \
 			--source . \
 			--region $(REGION) \
 			--platform managed \
 			--allow-unauthenticated \
-			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com; \
+			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com \
+			--set-env-vars NOTION_API_KEY=$(NOTION_API_KEY),NOTION_DATABASE_ID=$(NOTION_DATABASE_ID); \
 	else \
 		echo "Tests failed. Deployment aborted."; \
 		exit 1; \
