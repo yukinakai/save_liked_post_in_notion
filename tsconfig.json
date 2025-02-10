@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "es2020",
-    "lib": ["es2020"],
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "rootDir": ".",
+    "target": "ES2019",
+    "module": "ES2020",
+    "lib": ["ES2019"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "typeRoots": ["node_modules/@types", "src/types"],
+    "outDir": "dist",
+    "rootDir": ".",
     "resolveJsonModule": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false
