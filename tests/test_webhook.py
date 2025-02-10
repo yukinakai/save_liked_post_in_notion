@@ -8,7 +8,20 @@ def test_hello_world_get():
     assert response.status_code == 200
     assert response.json() == {"message": "Hello World"}
 
-def test_hello_world_post():
+def test_hello_world_post(monkeypatch):
+    # NotionServiceのcreate_pageメソッドをモック
+    def mock_create_page(self, data):
+        return {"id": "test-page-id"}
+    
+    # NotionServiceのadd_tweet_embed_codeメソッドをモック
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+        return {"id": page_id}
+    
+    # モックを適用
+    from app.services.notion_service import NotionService
+    monkeypatch.setattr(NotionService, "create_page", mock_create_page)
+    monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
+    
     tweet_data = {
         "text": "This is a test tweet",
         "userName": "testuser",
@@ -20,7 +33,20 @@ def test_hello_world_post():
     assert response.status_code == 200
     assert "id" in response.json()
 
-def test_webhook_post_success():
+def test_webhook_post_success(monkeypatch):
+    # NotionServiceのcreate_pageメソッドをモック
+    def mock_create_page(self, data):
+        return {"id": "test-page-id"}
+    
+    # NotionServiceのadd_tweet_embed_codeメソッドをモック
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+        return {"id": page_id}
+    
+    # モックを適用
+    from app.services.notion_service import NotionService
+    monkeypatch.setattr(NotionService, "create_page", mock_create_page)
+    monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
+    
     tweet_data = {
         "text": "This is a test tweet",
         "userName": "testuser",

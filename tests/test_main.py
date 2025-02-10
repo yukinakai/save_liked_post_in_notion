@@ -40,9 +40,14 @@ def test_webhook_post_success(monkeypatch):
     def mock_create_page(self, data):
         return {"id": "test-page-id"}
     
+    # NotionServiceのadd_tweet_embed_codeメソッドをモック
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+        return {"id": page_id}
+    
     # モックを適用
     from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
+    monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
     valid_data = {
         "text": "Test tweet",
