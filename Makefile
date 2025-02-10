@@ -35,12 +35,15 @@ deploy: test
 	@echo "Running unit tests before deployment..."
 	@if [ $$? -eq 0 ]; then \
 		echo "Tests passed. Proceeding with deployment..."; \
+		echo "Loading environment variables from .env file..."; \
+		$(eval include .env) \
 		gcloud run deploy $(SERVICE_NAME) \
 			--source . \
 			--region $(REGION) \
 			--platform managed \
 			--allow-unauthenticated \
-			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com; \
+			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com \
+			--set-env-vars NOTION_API_KEY=$(NOTION_API_KEY),NOTION_DATABASE_ID=$(NOTION_DATABASE_ID); \
 	else \
 		echo "Tests failed. Deployment aborted."; \
 		exit 1; \
