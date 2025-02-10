@@ -5,8 +5,15 @@ SERVICE_NAME := webhook-service
 REGION := asia-northeast1
 
 # Local development
-run-local:
-	uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
+run-local: test
+	@echo "Running unit tests before starting local server..."
+	@if [ $$? -eq 0 ]; then \
+		echo "Tests passed. Starting local server..."; \
+		uvicorn app.main:app --reload --host 0.0.0.0 --port 8080; \
+	else \
+		echo "Tests failed. Local server start aborted."; \
+		exit 1; \
+	fi
 
 test:
 	pytest
