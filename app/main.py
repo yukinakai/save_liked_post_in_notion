@@ -5,6 +5,7 @@ import os
 import uuid
 from dotenv import load_dotenv
 from app.routes import notion
+from app.services.notion_service import NotionService
 
 # 環境変数を読み込む
 load_dotenv()
@@ -13,6 +14,9 @@ app = FastAPI(
     title="Save Liked Post in Notion",
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
 )
+
+# NotionServiceのインスタンスを作成
+notion_service = NotionService()
 
 class TweetRequest(BaseModel):
     text: str = Field(..., description="The text content of the tweet")
@@ -44,12 +48,21 @@ async def webhook_post(tweet: TweetRequest):
     if not tweet.validate_date_format():
         raise HTTPException(status_code=422, detail="Invalid date format. Expected ISO format.")
     
-    # Generate a unique ID for the tweet
-    tweet_id = str(uuid.uuid4())
-    
-    # TODO: Save the tweet data to storage
-    
-    return TweetResponse(id=tweet_id)
+    try:
+        # Notionにページを作成
+        notion_page = notion_service.create_page({
+            "userName": tweet.userName,
+            "text": tweet.text,
+            "linkToTweet": tweet.linkToTweet,
+            "createdAt": tweet.createdAt
+        })
+        
+        # NotionページのIDを返す
+        return TweetResponse(id=notion_page["id"])
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Notionのルーターを追加
 app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])
