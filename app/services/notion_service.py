@@ -60,3 +60,35 @@ class NotionService:
             parent={"database_id": self.database_id},
             properties=properties
         )
+
+    def add_tweet_embed_code(self, page_id: str, tweet_embed_code: str) -> Dict[str, Any]:
+        """
+        Notionページの本文にツイート埋め込みコードを追加します
+        
+        Args:
+            page_id: NotionページのID
+            tweet_embed_code: ツイートの埋め込みコード
+        
+        Returns:
+            更新されたページの情報
+        
+        Raises:
+            ValueError: page_idまたはtweet_embed_codeが空の場合
+        """
+        if not page_id:
+            raise ValueError("Page ID is required")
+        if not tweet_embed_code:
+            raise ValueError("Tweet embed code is required")
+            
+        return self.notion.blocks.children.append(
+            block_id=page_id,
+            children=[
+                {
+                    "object": "block",
+                    "type": "embed",
+                    "embed": {
+                        "url": tweet_embed_code
+                    }
+                }
+            ]
+        )
