@@ -27,7 +27,16 @@ async def validation_exception_handler(request: Request, exc: ValidationExceptio
 
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
     """リクエストバリデーションエラーのハンドラー"""
-    logger.error(f"Request validation error occurred: {exc.errors()}")
+    # リクエストボディを取得
+    body = await request.body()
+    body_str = body.decode() if body else ""
+    
+    logger.error(
+        f"Request validation error occurred: {exc.errors()}, "
+        f"Request details - method: {request.method}, url: {request.url}, "
+        f"headers: {dict(request.headers)}, query_params: {dict(request.query_params)}, "
+        f"raw_body: {body_str}"
+    )
     
     # 日付フォーマットのエラーの場合は、専用のメッセージを返す
     for error in exc.errors():
