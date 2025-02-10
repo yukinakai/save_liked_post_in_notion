@@ -72,12 +72,8 @@ make run-local    # 開発サーバーを起動（ホットリロード有効）
 make test         # テストを実行
 make clean        # キャッシュファイルなどをクリーンアップ
 
-# Docker操作
-make run-docker   # Dockerコンテナをローカルで実行（テスト用）
-
 # デプロイ
-make deploy           # Cloud Runへデプロイ（Docker使用）
-make deploy-cloudbuild # Cloud Buildを使用してデプロイ
+make deploy       # Cloud Runへデプロイ
 ```
 
 詳細な使用方法は[GCP環境構築手順](docs/gcp-setup.md)を参照してください。
