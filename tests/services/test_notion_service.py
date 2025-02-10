@@ -46,7 +46,7 @@ def test_create_page_with_invalid_data():
 def test_create_page_with_api_error(monkeypatch):
     """Notion API エラーのテスト"""
     def mock_create_page(*args, **kwargs):
-        raise APIResponseError(response={"message": "API Error"}, status=500)
+        raise Exception("API Error")
     
     notion_service = NotionService()
     monkeypatch.setattr(notion_service.notion.pages, "create", mock_create_page)
@@ -83,7 +83,7 @@ def test_add_tweet_embed_code():
 def test_add_tweet_embed_code_with_api_error(monkeypatch):
     """ツイート埋め込みコード追加時のAPI エラーテスト"""
     def mock_append(*args, **kwargs):
-        raise APIResponseError(response={"message": "API Error"}, status=500)
+        raise Exception("API Error")
     
     notion_service = NotionService()
     monkeypatch.setattr(notion_service.notion.blocks.children, "append", mock_append)

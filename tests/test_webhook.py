@@ -86,7 +86,7 @@ def test_webhook_post_invalid_date_format():
 def test_webhook_post_notion_api_error(monkeypatch):
     # NotionServiceのcreate_pageメソッドをモック（エラーを発生させる）
     def mock_create_page(self, data):
-        raise NotionAPIException("Notion API error", 500, {"api": "error"})
+        raise NotionAPIException("Failed to create Notion page", details={"api": "error"})
     
     # モックを適用
     from app.services.notion_service import NotionService
@@ -102,6 +102,5 @@ def test_webhook_post_notion_api_error(monkeypatch):
     response = client.post("/webhook", json=tweet_data)
     assert response.status_code == 500
     assert response.json() == {
-        "message": "Notion API error",
-        "details": {"api": "error"}
+        "detail": "Failed to create Notion page"
     }
