@@ -3,8 +3,16 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import os
 import uuid
+from dotenv import load_dotenv
+from app.routes import notion
 
-app = FastAPI(title="Save Liked Post in Notion")
+# 環境変数を読み込む
+load_dotenv()
+
+app = FastAPI(
+    title="Save Liked Post in Notion",
+    description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
+)
 
 class TweetRequest(BaseModel):
     text: str = Field(..., description="The text content of the tweet")
@@ -42,6 +50,9 @@ async def webhook_post(tweet: TweetRequest):
     # TODO: Save the tweet data to storage
     
     return TweetResponse(id=tweet_id)
+
+# Notionのルーターを追加
+app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])
 
 if __name__ == "__main__":
     import uvicorn

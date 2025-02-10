@@ -6,3 +6,4 @@ pydantic==2.10.4
 pytest==8.3.4
 pytest-asyncio==0.23.5
 python-multipart==0.0.9
+notion-client==2.2.1
