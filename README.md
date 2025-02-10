@@ -60,7 +60,27 @@ cp .env.example .env
 
 ### デプロイ
 
-Google Cloud Runへのデプロイ手順は後日追加予定です。
+Google Cloud Runへのデプロイ手順は[GCP環境構築手順](docs/gcp-setup.md)を参照してください。
+
+### 利用可能なコマンド
+
+プロジェクトルートにある`Makefile`を使用して、以下のコマンドを実行できます：
+
+```bash
+# ローカル開発
+make run-local    # 開発サーバーを起動（ホットリロード有効）
+make test         # テストを実行
+make clean        # キャッシュファイルなどをクリーンアップ
+
+# Docker操作
+make run-docker   # Dockerコンテナをローカルで実行（テスト用）
+
+# デプロイ
+make deploy           # Cloud Runへデプロイ（Docker使用）
+make deploy-cloudbuild # Cloud Buildを使用してデプロイ
+```
+
+詳細な使用方法は[GCP環境構築手順](docs/gcp-setup.md)を参照してください。
 
 ## 開発ガイドライン
 
