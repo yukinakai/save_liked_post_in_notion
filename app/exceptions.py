@@ -10,22 +10,16 @@ class AppException(Exception):
     ):
         self.message = message
         self.status_code = status_code
-        self.details = details or {}
+        self.details = details
         super().__init__(self.message)
 
+    def __str__(self) -> str:
+        return self.message
+
 class NotionAPIException(AppException):
-    """Notion API関連の例外"""
-    def __init__(
-        self,
-        message: str,
-        status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None
-    ):
-        super().__init__(
-            message=message,
-            status_code=status_code,
-            details=details
-        )
+    """NotionAPIの例外クラス"""
+    def __init__(self, message: str, details: Optional[Dict] = None):
+        super().__init__(message, 500, details)
 
 class ValidationException(AppException):
     """バリデーション関連の例外"""

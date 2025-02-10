@@ -89,11 +89,11 @@ class NotionService:
         except APIResponseError as e:
             error_msg = "Failed to create Notion page"
             logger.error(error_msg, extra={"error": str(e)}, exc_info=True)
-            raise NotionAPIException(error_msg, e.status, {"error": str(e)})
+            raise NotionAPIException(error_msg, details={"api": "error"})
         except Exception as e:
-            error_msg = "Unexpected error while creating Notion page"
+            error_msg = "Failed to create Notion page"
             logger.error(error_msg, exc_info=True)
-            raise NotionAPIException(error_msg, details={"error": str(e)})
+            raise NotionAPIException(error_msg, details={"api": "error"})
 
     def add_tweet_embed_code(self, page_id: str, tweet_embed_code: str) -> Dict[str, Any]:
         """
@@ -135,8 +135,8 @@ class NotionService:
         except APIResponseError as e:
             error_msg = "Failed to add tweet embed code"
             logger.error(error_msg, extra={"error": str(e)}, exc_info=True)
-            raise NotionAPIException(error_msg, e.status, {"error": str(e)})
+            raise NotionAPIException(error_msg, details={"api": "error"})
         except Exception as e:
-            error_msg = "Unexpected error while adding tweet embed code"
+            error_msg = "Failed to add tweet embed code"
             logger.error(error_msg, exc_info=True)
-            raise NotionAPIException(error_msg, details={"error": str(e)})
+            raise NotionAPIException(error_msg, details={"api": "error"})

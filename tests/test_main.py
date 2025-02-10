@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from dotenv import load_dotenv
 from app.main import app
+from app.exceptions import ValidationException
 
 # テスト用の環境変数を読み込む
 load_dotenv(".env.test")
@@ -32,7 +33,34 @@ def test_webhook_post_with_invalid_date():
     }
     response = client.post("/webhook", json=invalid_data)
     assert response.status_code == 422
-    assert "Invalid date format" in response.json()["detail"]
+    assert response.json() == {
+        "message": "Invalid date format. Expected ISO format.",
+        "details": {}
+    }
+
+def test_webhook_post_with_empty_text():
+    """空のテキストフィールドのテスト"""
+    invalid_data = {
+        "text": "",  # 空のテキスト
+        "userName": "test_user",
+        "linkToTweet": "https://twitter.com/test_user/status/123456789",
+        "createdAt": "2025-02-10T13:35:49Z",
+        "tweetEmbedCode": "<blockquote>Test</blockquote>"
+    }
+    response = client.post("/webhook", json=invalid_data)
+    assert response.status_code == 422
+
+def test_webhook_post_with_missing_field():
+    """必須フィールドが欠けているテスト"""
+    invalid_data = {
+        "text": "Test tweet",
+        # userNameが欠けている
+        "linkToTweet": "https://twitter.com/test_user/status/123456789",
+        "createdAt": "2025-02-10T13:35:49Z",
+        "tweetEmbedCode": "<blockquote>Test</blockquote>"
+    }
+    response = client.post("/webhook", json=invalid_data)
+    assert response.status_code == 422
 
 def test_webhook_post_success(monkeypatch):
     """正常なPOSTリクエストのテスト"""

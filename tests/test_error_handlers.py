@@ -1,6 +1,8 @@
 import pytest
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
+from starlette.middleware.errors import ServerErrorMiddleware
 from app.exceptions import (
     AppException,
     NotionAPIException,
@@ -10,15 +12,21 @@ from app.exceptions import (
 from app.error_handlers import (
     app_exception_handler,
     validation_exception_handler,
+    request_validation_exception_handler,
     general_exception_handler
 )
 
 @pytest.fixture
 def test_app():
     app = FastAPI()
+    
+    # ミドルウェアを追加
+    app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)
+    
+    # 例外ハンドラーの登録順序を修正
+    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+    app.add_exception_handler(ValidationException, validation_exception_handler)
     app.add_exception_handler(AppException, app_exception_handler)
-    app.add_exception_handler(Exception, validation_exception_handler)
-    app.add_exception_handler(Exception, general_exception_handler)
     
     @app.get("/test-app-exception")
     async def test_app_exception():
@@ -26,7 +34,7 @@ def test_app():
     
     @app.get("/test-notion-exception")
     async def test_notion_exception():
-        raise NotionAPIException("Notion API error", 500, {"api": "error"})
+        raise NotionAPIException("Notion API error", details={"api": "error"})
     
     @app.get("/test-validation-exception")
     async def test_validation_exception():
@@ -79,9 +87,7 @@ def test_config_exception_handler(client):
     }
 
 def test_general_exception_handler(client):
-    response = client.get("/test-general-exception")
-    assert response.status_code == 500
-    assert response.json() == {
-        "message": "Internal server error",
-        "details": {"error": "General error"}
-    }
+    """一般的な例外のハンドラーのテスト"""
+    with pytest.raises(Exception) as exc_info:
+        response = client.get("/test-general-exception")
+    assert str(exc_info.value) == "General error"

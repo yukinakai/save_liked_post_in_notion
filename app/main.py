@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
 from datetime import datetime
 import os
@@ -6,6 +7,21 @@ import uuid
 from dotenv import load_dotenv
 from app.routes import notion
 from app.services.notion_service import NotionService
+from app.exceptions import (
+    AppException,
+    ValidationException,
+    NotionAPIException,
+    ConfigurationException
+)
+from app.error_handlers import (
+    app_exception_handler,
+    validation_exception_handler,
+    general_exception_handler,
+    request_validation_exception_handler
+)
+from app.models import Tweet, NotionPageResponse
+from starlette.middleware.errors import ServerErrorMiddleware
+from starlette.middleware.exceptions import ExceptionMiddleware
 
 # 環境変数を読み込む
 load_dotenv()
@@ -15,58 +31,42 @@ app = FastAPI(
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
 )
 
-class TweetRequest(BaseModel):
-    text: str = Field(..., description="The text content of the tweet")
-    userName: str = Field(..., description="The username of the tweet author")
-    linkToTweet: str = Field(..., description="URL to the original tweet")
-    createdAt: str = Field(..., description="Creation timestamp of the tweet in ISO format")
-    tweetEmbedCode: str = Field(..., description="HTML embed code for the tweet")
+# ミドルウェアを追加
+app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)
 
-    def validate_date_format(self):
-        try:
-            datetime.fromisoformat(self.createdAt.replace('Z', '+00:00'))
-            return True
-        except ValueError:
-            return False
+# エラーハンドラーを登録
+app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+app.add_exception_handler(ValidationException, validation_exception_handler)
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
-class TweetResponse(BaseModel):
-    id: str
+notion_service = NotionService()
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to Save Liked Post in Notion API"}
 
 @app.get("/webhook")
-async def webhook_get():
+async def hello_world():
     return {"message": "Hello World"}
 
-@app.post("/webhook", response_model=TweetResponse)
-async def webhook_post(tweet: TweetRequest):
-    if not tweet.validate_date_format():
-        raise HTTPException(status_code=422, detail="Invalid date format. Expected ISO format.")
-    
+@app.post("/webhook", response_model=NotionPageResponse)
+async def webhook_post(tweet: Tweet):
     try:
-        # Notionにページを作成
-        notion_service = NotionService()
-        notion_page = notion_service.create_page({
-            "userName": tweet.userName,
+        # Notionページの作成
+        page = notion_service.create_page({
             "text": tweet.text,
-            "linkToTweet": tweet.linkToTweet,
-            "createdAt": tweet.createdAt
+            "user_name": tweet.userName,
+            "link_to_tweet": tweet.linkToTweet,
+            "created_at": tweet.createdAt.isoformat(),
         })
-        
-        # ツイート埋め込みコードを追加
-        notion_service.add_tweet_embed_code(
-            page_id=notion_page["id"],
-            tweet_embed_code=tweet.tweetEmbedCode
-        )
-        
-        # NotionページのIDを返す
-        return TweetResponse(id=notion_page["id"])
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+        # ツイートの埋め込みコードを追加
+        notion_service.add_tweet_embed_code(page["id"], tweet.tweetEmbedCode)
+
+        return NotionPageResponse(id=page["id"])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise AppException("Failed to create Notion page", 500, {"error": str(e)})
 
 # Notionのルーターを追加
 app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])
