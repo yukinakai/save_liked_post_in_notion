@@ -1,7 +1,11 @@
 from fastapi.testclient import TestClient
 from datetime import datetime
 import pytest
+from dotenv import load_dotenv
 from app.main import app
+
+# テスト用の環境変数を読み込む
+load_dotenv(".env.test")
 
 client = TestClient(app)
 
