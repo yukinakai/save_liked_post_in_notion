@@ -56,6 +56,36 @@ gcloud projects add-iam-policy-binding save-liked-post-notion \
 
 ## 4. ローカル開発環境からのデプロイ
 
+プロジェクトルートにある`Makefile`を使用して、以下のコマンドでビルドとデプロイを実行できます：
+
+```bash
+# ローカルで開発サーバーを起動
+make run-local
+
+# テストを実行
+make test
+
+# Dockerイメージをビルドしてローカルで実行（テスト用）
+make run-docker
+
+# Cloud Runへデプロイ（Dockerを使用）
+make deploy
+
+# Cloud Buildを使用してデプロイ
+make deploy-cloudbuild
+
+# キャッシュファイルなどをクリーンアップ
+make clean
+```
+
+各コマンドの詳細：
+- `run-local`: FastAPIの開発サーバーをローカルで起動
+- `test`: pytestを使用してテストを実行
+- `run-docker`: ビルドしたDockerイメージをローカルで実行（動作確認用）
+- `deploy`: Dockerイメージをビルドし、Cloud Runにデプロイ
+- `deploy-cloudbuild`: Cloud Buildを使用してビルドとデプロイを実行
+- `clean`: 一時ファイルやキャッシュを削除
+
 1. アプリケーションのビルドとデプロイ：
 
 ```bash
