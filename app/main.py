@@ -129,9 +129,10 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
         tweetEmbedCode=tweet_embed_code
     )
     
-    # Notionにページを作成
-    page = notion_service.create_page(tweet)
-    
+    # NotionServiceを初期化してページを作成
+    logger.info("Creating new Notion page")
+    page = await notion_service.create_page(tweet.dict())  # Pydanticモデルを辞書に変換
+
     return NotionPageResponse(id=page["id"])
 
 # Notionのルーターを追加
