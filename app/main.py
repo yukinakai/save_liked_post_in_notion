@@ -33,6 +33,12 @@ logger = logging.getLogger(__name__)
 # 環境変数を読み込む
 load_dotenv()
 
+# NotionServiceのインスタンスを作成
+notion_service = NotionService(
+    api_key=os.getenv("NOTION_API_KEY"),
+    database_id=os.getenv("NOTION_DATABASE_ID")
+)
+
 app = FastAPI(
     title="Save Liked Post in Notion",
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
@@ -65,8 +71,6 @@ app.add_exception_handler(RequestValidationError, request_validation_exception_h
 app.add_exception_handler(ValidationException, validation_exception_handler)
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
-
-notion_service = NotionService()
 
 @app.get("/")
 async def root():
@@ -134,9 +138,15 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
     
     # NotionServiceを初期化してページを作成
     logger.info("Creating new Notion page")
-    page = await notion_service.create_page(tweet.dict())  # Pydanticモデルを辞書に変換
+    page = notion_service.create_page(tweet.model_dump())  # Pydanticモデルを辞書に変換
 
-    return NotionPageResponse(id=page["id"])
+    # 埋め込みコードを追加
+    if tweet_embed_code:
+        logger.info("Adding tweet embed code")
+        notion_service.add_tweet_embed_code(page["id"], tweet_embed_code)
+
+    # レスポンスを返す
+    return NotionPageResponse(pageId=page["id"])
 
 # Notionのルーターを追加
 app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])
