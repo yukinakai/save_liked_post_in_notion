@@ -26,9 +26,8 @@ def test_webhook_post_success(monkeypatch):
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
     monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
-    # 実際のリクエストボディを模擬
-    raw_body = '''
-{
+    # 実際のリクエストボディを模擬（改行とダブルクォートを生の状態で含む）
+    raw_body = '''{
     "text": "This is a test
 tweet with
 line breaks and "quotes"",
@@ -37,8 +36,8 @@ line breaks and "quotes"",
     "createdAt": "2025-02-10T13:35:49Z",
     "tweetEmbedCode": "<blockquote>Test
 Tweet</blockquote>"
-}
-'''
+}'''
+    
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
@@ -49,14 +48,13 @@ Tweet</blockquote>"
 
 def test_webhook_post_missing_field():
     """必須フィールドが欠けているPOSTリクエストのテスト"""
-    raw_body = '''
-{
+    raw_body = '''{
     "text": "This is a test tweet",
     "userName": "testuser",
     "createdAt": "2025-02-10T13:35:49Z",
     "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}
-'''
+}'''
+    
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
@@ -66,16 +64,15 @@ def test_webhook_post_missing_field():
 
 def test_webhook_post_invalid_date_format():
     """不正な日付フォーマットのテスト"""
-    raw_body = '''
-{
+    raw_body = '''{
     "text": "This is a test
 tweet with "quotes"",
     "userName": "testuser",
     "linkToTweet": "https://twitter.com/testuser/status/123456789",
     "createdAt": "invalid-date",
     "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}
-'''
+}'''
+    
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
@@ -97,8 +94,7 @@ def test_webhook_post_notion_api_error(monkeypatch):
     from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
 
-    raw_body = '''
-{
+    raw_body = '''{
     "text": "This is a test
 tweet with "quotes"",
     "userName": "testuser",
@@ -106,8 +102,8 @@ tweet with "quotes"",
     "createdAt": "2025-02-10T13:35:49Z",
     "tweetEmbedCode": "<blockquote>Test
 Tweet</blockquote>"
-}
-'''
+}'''
+    
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
@@ -121,15 +117,14 @@ Tweet</blockquote>"
 
 def test_webhook_post_empty_text():
     """空のテキストフィールドのテスト"""
-    raw_body = '''
-{
+    raw_body = '''{
     "text": "",
     "userName": "testuser",
     "linkToTweet": "https://twitter.com/testuser/status/123456789",
     "createdAt": "2025-02-10T13:35:49Z",
     "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}
-'''
+}'''
+    
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
