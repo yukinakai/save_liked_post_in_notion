@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Request, JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
