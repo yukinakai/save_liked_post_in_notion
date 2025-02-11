@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 import pytest
 from app.main import app
-from app.exceptions import NotionAPIException
 
 # テスト用の環境変数を読み込む
 # load_dotenv(".env.test")

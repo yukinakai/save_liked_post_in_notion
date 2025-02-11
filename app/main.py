@@ -1,12 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from datetime import datetime
+from typing import Optional, Dict, Any
+import logging
 import os
-import uuid
-from dotenv import load_dotenv
-from app.routes import notion
-from app.services.notion_service import NotionService
 from app.exceptions import (
     AppException,
     ValidationException,
@@ -21,8 +17,6 @@ from app.error_handlers import (
 )
 from app.models import Tweet, NotionPageResponse
 from starlette.middleware.errors import ServerErrorMiddleware
-from starlette.middleware.exceptions import ExceptionMiddleware
-import logging
 from fastapi.security.api_key import APIKeyHeader
 
 # ロガーの設定

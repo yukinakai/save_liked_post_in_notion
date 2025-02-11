@@ -18,10 +18,10 @@ class NotionService:
         try:
             self.notion = Client(auth=self.api_key)
             logger.info("NotionService initialized successfully")
-        except Exception as e:
+        except Exception:
             logger.error("Failed to initialize NotionService", exc_info=True)
-            raise ConfigurationException("Failed to initialize Notion client", {"error": str(e)})
-    
+            raise ConfigurationException("Failed to initialize Notion client")
+
     def create_page(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Notionデータベースに新しいページを作成します
@@ -86,11 +86,11 @@ class NotionService:
             )
             logger.info("Successfully created Notion page", extra={"page_id": response["id"]})
             return response
-        except APIResponseError as e:
+        except APIResponseError:
             error_msg = "Failed to create Notion page"
-            logger.error(error_msg, extra={"error": str(e)}, exc_info=True)
+            logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
-        except Exception as e:
+        except Exception:
             error_msg = "Failed to create Notion page"
             logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
@@ -132,11 +132,11 @@ class NotionService:
             )
             logger.info("Successfully added tweet embed code", extra={"page_id": page_id})
             return response
-        except APIResponseError as e:
+        except APIResponseError:
             error_msg = "Failed to add tweet embed code"
-            logger.error(error_msg, extra={"error": str(e)}, exc_info=True)
+            logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
-        except Exception as e:
+        except Exception:
             error_msg = "Failed to add tweet embed code"
             logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
