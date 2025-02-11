@@ -24,17 +24,12 @@ def test_webhook_get():
 
 def test_webhook_post_with_invalid_date():
     """不正な日付フォーマットのテスト"""
-    raw_body = '''{
-    "text": "Test tweet",
-    "userName": "test_user",
-    "linkToTweet": "https://twitter.com/test_user/status/123456789",
-    "createdAt": "invalid-date",
-    "tweetEmbedCode": "<blockquote>Test</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''Test tweet___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___invalid-date___POST_FIELD_SEPARATOR___<blockquote>Test</blockquote>'''
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422
     assert response.json() == {
@@ -44,32 +39,23 @@ def test_webhook_post_with_invalid_date():
 
 def test_webhook_post_with_empty_text():
     """空のテキストフィールドのテスト"""
-    raw_body = '''{
-    "text": "",
-    "userName": "test_user",
-    "linkToTweet": "https://twitter.com/test_user/status/123456789",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>Test</blockquote>'''
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422
 
 def test_webhook_post_with_missing_field():
     """必須フィールドが欠けているテスト"""
-    raw_body = '''{
-    "text": "Test tweet",
-    "linkToTweet": "https://twitter.com/test_user/status/123456789",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt（tweetEmbedCodeが欠けている）
+    raw_body = '''Test tweet___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z'''
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422
 
@@ -89,19 +75,14 @@ def test_webhook_post_success(monkeypatch):
     monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
     from datetime import datetime
-    raw_body = f'''{{
-    "text": "Test tweet with
-line breaks and "quotes"",
-    "userName": "test_user",
-    "linkToTweet": "https://twitter.com/test_user/status/123456789",
-    "createdAt": "{datetime.now().isoformat()}",
-    "tweetEmbedCode": "<blockquote>Test</blockquote>"
-}}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = f'''Test tweet with
+line breaks and "quotes"___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___{datetime.now().isoformat()}___POST_FIELD_SEPARATOR___<blockquote>Test</blockquote>'''
 
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 200
     assert response.json() == {"id": "test-page-id"}
