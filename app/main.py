@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
 import os
 import uuid
@@ -22,6 +22,7 @@ from app.error_handlers import (
 from app.models import Tweet, NotionPageResponse
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
+import json
 
 # 環境変数を読み込む
 load_dotenv()
@@ -51,8 +52,18 @@ async def hello_world():
     return {"message": "Hello World"}
 
 @app.post("/webhook", response_model=NotionPageResponse)
-async def webhook_post(tweet: Tweet):
+async def webhook_post(request: Request):
+    # リクエストボディを取得して改行を正規化
+    body = await request.body()
+    body_str = body.decode()
+    normalized_body = body_str.replace('\r\n', '\\n').replace('\r', '\\n').replace('\n', '\\n')
+    
     try:
+        # JSONとしてパース
+        data = json.loads(normalized_body)
+        # Tweetモデルとしてバリデーション
+        tweet = Tweet(**data)
+        
         # Notionページの作成
         page = notion_service.create_page({
             "text": tweet.text,
@@ -65,6 +76,10 @@ async def webhook_post(tweet: Tweet):
         notion_service.add_tweet_embed_code(page["id"], tweet.tweetEmbedCode)
 
         return NotionPageResponse(id=page["id"])
+    except json.JSONDecodeError as e:
+        raise ValidationException(f"Invalid JSON format: {str(e)}")
+    except ValidationError as e:
+        raise ValidationException(f"Invalid Tweet data: {str(e)}")
     except Exception as e:
         raise AppException("Failed to create Notion page", 500, {"error": str(e)})
 
