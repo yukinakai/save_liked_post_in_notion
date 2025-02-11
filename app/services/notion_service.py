@@ -74,7 +74,7 @@ class NotionService:
             },
             "Tweeted_at": {
                 "date": {
-                    "start": data["createdAt"]
+                    "start": data["createdAt"].isoformat() if hasattr(data["createdAt"], "isoformat") else data["createdAt"]
                 }
             }
         }
