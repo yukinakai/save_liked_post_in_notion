@@ -95,27 +95,27 @@ class NotionService:
             logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
 
-    def add_tweet_embed_code(self, page_id: str, tweet_embed_code: str) -> Dict[str, Any]:
+    def add_tweet_url(self, page_id: str, linkToTweet: str) -> Dict[str, Any]:
         """
-        Notionページの本文にツイート埋め込みコードを追加します
+        Notionページの本文にツイートURLを埋め込みコードを追加します
         
         Args:
             page_id: NotionページのID
-            tweet_embed_code: ツイートの埋め込みコード
+            linkToTweet: ツイートのURL
         
         Returns:
             更新されたページの情報
         
         Raises:
-            ValidationException: page_idまたはtweet_embed_codeが空の場合
+            ValidationException: page_idまたはlinkToTweetが空の場合
             NotionAPIException: Notion APIとの通信に失敗した場合
         """
-        logger.info("Adding tweet embed code", extra={"page_id": page_id})
+        logger.info("Adding tweet url", extra={"page_id": page_id})
         
         if not page_id:
             raise ValidationException("Page ID is required")
-        if not tweet_embed_code:
-            raise ValidationException("Tweet embed code is required")
+        if not linkToTweet:
+            raise ValidationException("Tweet URL is required")
             
         try:
             response = self.notion.blocks.children.append(
@@ -125,18 +125,18 @@ class NotionService:
                         "object": "block",
                         "type": "embed",
                         "embed": {
-                            "url": tweet_embed_code
+                            "url": linkToTweet
                         }
                     }
                 ]
             )
-            logger.info("Successfully added tweet embed code", extra={"page_id": page_id})
+            logger.info("Successfully added embed tweet", extra={"page_id": page_id})
             return response
         except APIResponseError as e:
-            error_msg = "Failed to add tweet embed code"
+            error_msg = "Failed to add embed tweet"
             logger.error(error_msg, extra={"error": str(e)}, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})
         except Exception as e:
-            error_msg = "Failed to add tweet embed code"
+            error_msg = "Failed to add embed tweet"
             logger.error(error_msg, exc_info=True)
             raise NotionAPIException(error_msg, details={"api": "error"})

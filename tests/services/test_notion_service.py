@@ -62,26 +62,26 @@ def test_create_page_with_api_error(monkeypatch):
         notion_service.create_page(valid_data)
     assert "Failed to create Notion page" in str(exc_info.value)
 
-def test_add_tweet_embed_code():
-    """ツイート埋め込みコードの追加テスト"""
+def test_add_tweet_url():
+    """ツイートURLの追加テスト"""
     notion_service = NotionService()
     
-    # テスト用のページIDとツイート埋め込みコード
+    # テスト用のページIDとツイートURL
     page_id = "test_page_id"
-    tweet_embed_code = '<blockquote class="twitter-tweet">...</blockquote>'
+    link_to_tweet = "https://twitter.com/test_user/status/123456789"
     
     # 無効なページIDでテスト
     with pytest.raises(ValidationException) as exc_info:
-        notion_service.add_tweet_embed_code("", tweet_embed_code)
+        notion_service.add_tweet_url("", link_to_tweet)
     assert "Page ID is required" in str(exc_info.value)
     
-    # 無効な埋め込みコードでテスト
+    # 無効なURLでテスト
     with pytest.raises(ValidationException) as exc_info:
-        notion_service.add_tweet_embed_code(page_id, "")
-    assert "Tweet embed code is required" in str(exc_info.value)
+        notion_service.add_tweet_url(page_id, "")
+    assert "Tweet URL is required" in str(exc_info.value)
 
-def test_add_tweet_embed_code_with_api_error(monkeypatch):
-    """ツイート埋め込みコード追加時のAPI エラーテスト"""
+def test_add_tweet_url_with_api_error(monkeypatch):
+    """ツイートURL追加時のAPI エラーテスト"""
     def mock_append(*args, **kwargs):
         raise Exception("API Error")
     
@@ -89,8 +89,8 @@ def test_add_tweet_embed_code_with_api_error(monkeypatch):
     monkeypatch.setattr(notion_service.notion.blocks.children, "append", mock_append)
     
     page_id = "test_page_id"
-    tweet_embed_code = '<blockquote class="twitter-tweet">...</blockquote>'
+    link_to_tweet = "https://twitter.com/test_user/status/123456789"
     
     with pytest.raises(NotionAPIException) as exc_info:
-        notion_service.add_tweet_embed_code(page_id, tweet_embed_code)
-    assert "Failed to add tweet embed code" in str(exc_info.value)
+        notion_service.add_tweet_url(page_id, link_to_tweet)
+    assert "Failed to add embed tweet" in str(exc_info.value)

@@ -7,7 +7,6 @@ class Tweet(BaseModel):
     userName: str
     linkToTweet: str
     createdAt: datetime
-    tweetEmbedCode: str
 
 class NotionPageResponse(BaseModel):
     """Notionページのレスポンスモデル"""
