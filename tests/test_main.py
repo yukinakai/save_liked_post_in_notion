@@ -70,12 +70,12 @@ def test_webhook_post_with_missing_field(test_client):
 def test_webhook_post_success(test_client, monkeypatch):
     """正常なPOSTリクエストのテスト"""
     # NotionServiceのcreate_pageメソッドをモック
-    def mock_create_page(self, data):
-        return {"id": "test-page-id"}
+    def mock_create_page(self, data):  # pylint: disable=unused-argument
+        return True
 
     # NotionServiceのadd_tweet_embed_codeメソッドをモック
-    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
-        return {"id": page_id}
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):  # pylint: disable=unused-argument
+        return True
 
     # モックを適用
     from app.services.notion_service import NotionService

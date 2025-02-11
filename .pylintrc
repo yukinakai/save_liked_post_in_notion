@@ -1,0 +1,8 @@
+[MESSAGES CONTROL]
+disable=unused-argument
+
+[BASIC]
+good-names=e,i,j,k,ex,Run,_
+
+[FORMAT]
+max-line-length=120

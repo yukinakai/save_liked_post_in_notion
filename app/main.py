@@ -1,25 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, Dict, Any
 import logging
 import os
-from app.exceptions import (
-    AppException,
-    ValidationException,
-    NotionAPIException,
-    ConfigurationException
-)
-from app.error_handlers import (
-    app_exception_handler,
-    validation_exception_handler,
-    general_exception_handler,
-    request_validation_exception_handler
-)
-from app.models import Tweet, NotionPageResponse, WebhookRequest
+from app.exceptions import ValidationException
+from app.models import Tweet, NotionPageResponse
 from app.services.notion_service import NotionService
-from starlette.middleware.cors import CORSMiddleware
+from app.error_handlers import validation_exception_handler, app_exception_handler, general_exception_handler, AppException
 from starlette.middleware.errors import ServerErrorMiddleware
-from fastapi.security.api_key import APIKeyHeader
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -41,7 +27,7 @@ app = FastAPI(
 # API Key認証の設定
 API_KEY_NAME = "X-API-Key"
 
-def get_api_key(api_key: str = Header(None, alias="X-API-Key")) -> str:
+def get_api_key(api_key: str = Header(None, alias="X-API-Key")) -> str:  # pylint: disable=unused-argument
     """API Keyを取得する関数"""
     if api_key is None:
         raise HTTPException(
@@ -56,6 +42,10 @@ def get_api_key(api_key: str = Header(None, alias="X-API-Key")) -> str:
         )
     
     return api_key
+
+def get_notion_service(api_key: str = Depends(get_api_key)) -> NotionService:  # pylint: disable=unused-argument
+    """NotionServiceのインスタンスを取得する関数"""
+    return notion_service
 
 # ミドルウェアを追加
 app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)

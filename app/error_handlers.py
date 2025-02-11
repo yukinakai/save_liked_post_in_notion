@@ -17,8 +17,8 @@ async def app_exception_handler(request: Request, exc: AppException):
         }
     )
 
-async def validation_exception_handler(request: Request, exc: ValidationException):
-    """バリデーション例外のハンドラー"""# リクエストボディを取得
+async def validation_exception_handler(request: Request, exc: ValidationException):  # pylint: disable=unused-argument
+    """バリデーションエラーのハンドラー"""# リクエストボディを取得
     body = await request.body()
     body_str = body.decode() if body else ""
 
@@ -76,7 +76,7 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
         }
     )
 
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception):  # pylint: disable=unused-argument
     """一般的な例外のハンドラー"""
     logger.error(f"Unexpected error occurred: {str(exc)}")
     return JSONResponse(

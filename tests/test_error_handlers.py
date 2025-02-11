@@ -89,5 +89,5 @@ def test_config_exception_handler(client):
 def test_general_exception_handler(client):
     """一般的な例外のハンドラーのテスト"""
     with pytest.raises(Exception) as exc_info:
-        response = client.get("/test-general-exception")
+        client.get("/test-general-exception")
     assert str(exc_info.value) == "General error"

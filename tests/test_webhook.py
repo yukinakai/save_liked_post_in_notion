@@ -23,11 +23,11 @@ def test_webhook_get(test_client):
 def test_webhook_post_success(test_client, monkeypatch):
     """正常なPOSTリクエストのテスト"""
     # NotionServiceのcreate_pageメソッドをモック
-    def mock_create_page(self, data):
+    def mock_create_page(self, data):  # pylint: disable=unused-argument
         return {"id": "test-page-id"}
     
     # NotionServiceのadd_tweet_embed_codeメソッドをモック
-    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):  # pylint: disable=unused-argument
         return True
     
     # モックを適用
@@ -84,11 +84,11 @@ tweet with "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___h
 def test_webhook_post_with_formatted_date(test_client, monkeypatch):
     """Month DD, YYYY at HH:MMAM/PM形式の日付を含むPOSTリクエストのテスト"""
     # NotionServiceのcreate_pageメソッドをモック
-    def mock_create_page(self, data):
+    def mock_create_page(self, data):  # pylint: disable=unused-argument
         return {"id": "test-page-id"}
     
     # NotionServiceのadd_tweet_embed_codeメソッドをモック
-    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):  # pylint: disable=unused-argument
         return True
     
     # モックを適用
@@ -109,7 +109,7 @@ def test_webhook_post_with_formatted_date(test_client, monkeypatch):
 def test_webhook_post_notion_api_error(test_client, monkeypatch):
     """NotionAPIエラーのテスト"""
     # NotionServiceのcreate_pageメソッドをモック（エラーを発生させる）
-    def mock_create_page(self, data):
+    def mock_create_page(self, data):  # pylint: disable=unused-argument
         raise NotionAPIException("Failed to create Notion page", details={"error": "Failed to create Notion page"})
 
     # モックを適用
