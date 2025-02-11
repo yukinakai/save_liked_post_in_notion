@@ -27,6 +27,9 @@ import json
 import logging
 from fastapi.security.api_key import APIKeyHeader
 
+# ロガーの設定
+logger = logging.getLogger(__name__)
+
 # 環境変数を読み込む
 load_dotenv()
 
