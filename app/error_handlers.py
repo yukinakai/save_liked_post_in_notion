@@ -6,7 +6,7 @@ from .exceptions import AppException, ValidationException
 
 logger = logging.getLogger(__name__)
 
-async def app_exception_handler(request: Request, exc: AppException):
+async def app_exception_handler(request: Request, exc: AppException):  # pylint: disable=unused-argument
     """アプリケーション例外のハンドラー"""
     logger.error(f"Application error occurred: {str(exc)}")
     return JSONResponse(

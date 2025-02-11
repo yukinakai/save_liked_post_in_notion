@@ -60,11 +60,11 @@ async def root():
     return {"message": "Welcome to Save Liked Post in Notion API"}
 
 @app.get("/webhook")
-async def hello_world(api_key: str = Depends(get_api_key)):
+async def hello_world(api_key: str = Depends(get_api_key)):  # pylint: disable=unused-argument
     return {"message": "Hello World"}
 
 @app.post("/webhook", response_model=NotionPageResponse)
-async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
+async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):  # pylint: disable=unused-argument
     """Webhookエンドポイント
     
     リクエストボディは以下の順序でフィールドを___POST_FIELD_SEPARATOR___で区切って送信:
