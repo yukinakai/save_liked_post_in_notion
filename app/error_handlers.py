@@ -18,8 +18,11 @@ async def app_exception_handler(request: Request, exc: AppException):
     )
 
 async def validation_exception_handler(request: Request, exc: ValidationException):
-    """バリデーション例外のハンドラー"""
-    logger.error(f"Validation error occurred: {str(exc)}")
+    """バリデーション例外のハンドラー"""# リクエストボディを取得
+    body = await request.body()
+    body_str = body.decode() if body else ""
+
+    logger.error(f"Validation error occurred: {str(exc)}, Request body: {body_str}")
     return JSONResponse(status_code=422, content={
         "message": str(exc),
         "details": exc.details
@@ -30,11 +33,23 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
     # リクエストボディを取得
     body = await request.body()
     body_str = body.decode() if body else ""
+
+    # JSONとしてパースを試みる
+    try:
+        if body_str:
+            import json
+            parsed_body = json.loads(body_str)
+            body_analysis = f"Parsed JSON body: {parsed_body}"
+        else:
+            body_analysis = "Empty body"
+    except json.JSONDecodeError as e:
+        body_analysis = f"Invalid JSON format: {str(e)}, position: {e.pos}, line: {e.lineno}, column: {e.colno}, raw_body: {body_str}"
     
     logger.error(
         f"Request validation error occurred: {exc.errors()}, "
         f"Request details - method: {request.method}, url: {request.url}, "
         f"headers: {dict(request.headers)}, query_params: {dict(request.query_params)}, "
+        f"body_analysis: {body_analysis}, "
         f"raw_body: {body_str}"
     )
     

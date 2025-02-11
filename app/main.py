@@ -24,6 +24,7 @@ from app.models import Tweet, NotionPageResponse
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 import json
+import logging
 
 # 環境変数を読み込む
 load_dotenv()
@@ -67,11 +68,18 @@ async def webhook_post(request: Request):
     body = await request.body()
     body_str = body.decode()
     
+    # デバッグ用ログ
+    logging.info(f"Received webhook request body: {body_str}")
+    
     try:
         # 区切り文字で分割してフィールドを取得
         fields = body_str.split('___POST_FIELD_SEPARATOR___')
+        logging.info(f"Split fields count: {len(fields)}")
+        
         if len(fields) != 5:
-            raise ValidationException("Invalid number of fields in request body")
+            error_msg = f"Invalid number of fields in request body: expected 5, got {len(fields)}"
+            logging.warning(error_msg)
+            raise ValidationException(error_msg)
             
         # 順序に従ってデータを構築
         data = {
