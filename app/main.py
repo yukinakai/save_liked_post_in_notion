@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
@@ -79,6 +79,16 @@ async def webhook_post(request: Request):
     except json.JSONDecodeError as e:
         raise ValidationException(f"Invalid JSON format: {str(e)}")
     except ValidationError as e:
+        # バリデーションエラーの詳細を確認
+        for error in e.errors():
+            if error.get("type") == "datetime_from_date_parsing":
+                return JSONResponse(
+                    status_code=422,
+                    content={
+                        "message": "Invalid date format. Expected ISO format.",
+                        "details": {}
+                    }
+                )
         raise ValidationException(f"Invalid Tweet data: {str(e)}")
     except Exception as e:
         raise AppException("Failed to create Notion page", 500, {"error": str(e)})
