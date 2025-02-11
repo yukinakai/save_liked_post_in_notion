@@ -70,6 +70,17 @@ tweet with "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___h
         "details": {}
     }
 
+def test_webhook_post_with_formatted_date():
+    """Month DD, YYYY at HH:MMAM/PM形式の日付を含むPOSTリクエストのテスト"""
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''Test tweet___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___February 11, 2025 at 01:25AM___POST_FIELD_SEPARATOR___<blockquote>Test</blockquote>'''
+    response = client.post(
+        "/webhook",
+        content=raw_body.encode(),
+        headers={"Content-Type": "text/plain"}
+    )
+    assert response.status_code == 200
+
 def test_webhook_post_notion_api_error(monkeypatch):
     """NotionAPIエラーのテスト"""
     # NotionServiceのcreate_pageメソッドをモック（エラーを発生させる）

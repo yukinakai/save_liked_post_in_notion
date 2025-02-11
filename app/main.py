@@ -61,7 +61,7 @@ async def webhook_post(request: Request):
     1. text: ツイートのテキスト
     2. userName: ユーザー名
     3. linkToTweet: ツイートへのリンク
-    4. createdAt: 作成日時（ISO形式）
+    4. createdAt: 作成日時（ISO形式または "Month DD, YYYY at HH:MMAM/PM" 形式）
     5. tweetEmbedCode: 埋め込みコード
     """
     # リクエストボディを取得
@@ -81,12 +81,25 @@ async def webhook_post(request: Request):
             logging.warning(error_msg)
             raise ValidationException(error_msg)
             
+        # createdAtフィールドの日付フォーマットを変換
+        created_at = fields[3]
+        try:
+            # "Month DD, YYYY at HH:MMAM/PM" 形式の場合、ISO形式に変換
+            if "at" in created_at:
+                from datetime import datetime
+                dt = datetime.strptime(created_at, "%B %d, %Y at %I:%M%p")
+                created_at = dt.isoformat()
+        except ValueError as e:
+            logging.warning(f"Failed to parse date: {created_at}")
+            # 変換に失敗した場合は、そのままの値を使用（Pydanticのバリデーションで処理）
+            pass
+            
         # 順序に従ってデータを構築
         data = {
             "text": fields[0],
             "userName": fields[1],
             "linkToTweet": fields[2],
-            "createdAt": fields[3],
+            "createdAt": created_at,
             "tweetEmbedCode": fields[4]
         }
         
