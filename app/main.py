@@ -54,10 +54,16 @@ async def hello_world():
 
 @app.post("/webhook", response_model=NotionPageResponse)
 async def webhook_post(request: Request):
-    # リクエストボディを取得して改行を正規化
+    # リクエストボディを取得して改行とダブルクォートを正規化
     body = await request.body()
     body_str = body.decode()
-    normalized_body = body_str.replace('\r\n', '\\n').replace('\r', '\\n').replace('\n', '\\n')
+    normalized_body = (
+        body_str
+        .replace('\r\n', '\\n')
+        .replace('\r', '\\n')
+        .replace('\n', '\\n')
+        .replace('"', '\\"')
+    )
     
     try:
         # JSONとしてパース
