@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Security, Depends
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError
@@ -25,6 +25,7 @@ from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 import json
 import logging
+from fastapi.security.api_key import APIKeyHeader
 
 # 環境変数を読み込む
 load_dotenv()
@@ -33,6 +34,31 @@ app = FastAPI(
     title="Save Liked Post in Notion",
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
 )
+
+# API Key認証の設定
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if api_key_header is None:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "message": "API key is missing",
+                "details": {}
+            }
+        )
+
+    if api_key_header != os.getenv("WEBHOOK_API_KEY"):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "message": "Invalid API key",
+                "details": {}
+            }
+        )
+
+    return api_key_header
 
 # ミドルウェアを追加
 app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)
@@ -50,11 +76,11 @@ async def root():
     return {"message": "Welcome to Save Liked Post in Notion API"}
 
 @app.get("/webhook")
-async def hello_world():
+async def hello_world(api_key: str = Depends(get_api_key)):
     return {"message": "Hello World"}
 
 @app.post("/webhook", response_model=NotionPageResponse)
-async def webhook_post(request: Request):
+async def webhook_post(tweet: Tweet, api_key: str = Depends(get_api_key)):
     """Webhookエンドポイント
     
     リクエストボディは以下の順序でフィールドを___POST_FIELD_SEPARATOR___で区切って送信:

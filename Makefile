@@ -43,7 +43,7 @@ deploy: test
 			--platform managed \
 			--allow-unauthenticated \
 			--service-account webhook-service@save-liked-post-notion.iam.gserviceaccount.com \
-			--set-env-vars NOTION_API_KEY=$(NOTION_API_KEY),NOTION_DATABASE_ID=$(NOTION_DATABASE_ID); \
+			--set-env-vars NOTION_API_KEY=$(NOTION_API_KEY),NOTION_DATABASE_ID=$(NOTION_DATABASE_ID),WEBHOOK_API_KEY=$(WEBHOOK_API_KEY); \
 	else \
 		echo "Tests failed. Deployment aborted."; \
 		exit 1; \
