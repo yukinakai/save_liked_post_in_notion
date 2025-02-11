@@ -70,8 +70,21 @@ tweet with "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___h
         "details": {}
     }
 
-def test_webhook_post_with_formatted_date():
+def test_webhook_post_with_formatted_date(monkeypatch):
     """Month DD, YYYY at HH:MMAM/PM形式の日付を含むPOSTリクエストのテスト"""
+    # NotionServiceのcreate_pageメソッドをモック
+    def mock_create_page(self, data):
+        return {"id": "test-page-id"}
+    
+    # NotionServiceのadd_tweet_embed_codeメソッドをモック
+    def mock_add_tweet_embed_code(self, page_id, tweet_embed_code):
+        return True
+    
+    # モックを適用
+    from app.services.notion_service import NotionService
+    monkeypatch.setattr(NotionService, "create_page", mock_create_page)
+    monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
+    
     # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
     raw_body = '''Test tweet___POST_FIELD_SEPARATOR___test_user___POST_FIELD_SEPARATOR___https://twitter.com/test_user/status/123456789___POST_FIELD_SEPARATOR___February 11, 2025 at 01:25AM___POST_FIELD_SEPARATOR___<blockquote>Test</blockquote>'''
     response = client.post(
@@ -80,6 +93,7 @@ def test_webhook_post_with_formatted_date():
         headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 200
+    assert response.json() == {"id": "test-page-id"}
 
 def test_webhook_post_notion_api_error(monkeypatch):
     """NotionAPIエラーのテスト"""
