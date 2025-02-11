@@ -98,7 +98,7 @@ WEBHOOK_API_KEY=your_webhook_api_key  # Webhookの認証に使用
 curl -X POST https://your-deployed-url/webhook \
   -H "Content-Type: text/plain" \
   -H "X-API-Key: your_webhook_api_key" \
-  -d "ツイートのテキスト___POST_FIELD_SEPARATOR___ユーザー名___POST_FIELD_SEPARATOR___https://twitter.com/user/status/123___POST_FIELD_SEPARATOR___2025-02-11T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>埋め込みコード</blockquote>"
+  -d "ツイートのテキスト___POST_FIELD_SEPARATOR___ユーザー名___POST_FIELD_SEPARATOR___https://twitter.com/user/status/123___POST_FIELD_SEPARATOR___2025-02-11T13:35:49Z"
 ```
 
 リクエストボディは以下の5つのフィールドを`___POST_FIELD_SEPARATOR___`で区切って送信します：
@@ -107,7 +107,6 @@ curl -X POST https://your-deployed-url/webhook \
 2. userName: ユーザー名
 3. linkToTweet: ツイートへのリンク
 4. createdAt: 作成日時（ISO形式または "Month DD, YYYY at HH:MMAM/PM" 形式）
-5. tweetEmbedCode: 埋め込みコード
 
 ### 3. レスポンス
 

@@ -89,7 +89,6 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
     2. userName: ユーザー名
     3. linkToTweet: ツイートへのリンク
     4. createdAt: 作成日時（ISO形式または "Month DD, YYYY at HH:MMAM/PM" 形式）
-    5. tweetEmbedCode: 埋め込みコード
     """
     # リクエストボディをテキストとして読み取る
     body = await request.body()
@@ -97,14 +96,14 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
     
     # フィールドを分割
     fields = raw_text.split("___POST_FIELD_SEPARATOR___")
-    if len(fields) != 5:
+    if len(fields) != 4:
         raise ValidationException(
-            "Invalid request format. Expected 5 fields separated by ___POST_FIELD_SEPARATOR___",
+            "Invalid request format. Expected 4 fields separated by ___POST_FIELD_SEPARATOR___",
             details={"received_fields": len(fields)}
         )
     
     # フィールドを取り出す
-    text, user_name, link_to_tweet, created_at, tweet_embed_code = fields
+    text, user_name, link_to_tweet, created_at = fields
 
     # 必須フィールドのバリデーション
     if not text:
@@ -132,8 +131,7 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
         text=text,
         userName=user_name,
         linkToTweet=link_to_tweet,
-        createdAt=parsed_date.isoformat(),
-        tweetEmbedCode=tweet_embed_code
+        createdAt=parsed_date.isoformat()
     )
     
     # NotionServiceを初期化してページを作成
@@ -141,9 +139,9 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
     page = notion_service.create_page(tweet.model_dump())  # Pydanticモデルを辞書に変換
 
     # 埋め込みコードを追加
-    if tweet_embed_code:
-        logger.info("Adding tweet embed code")
-        notion_service.add_tweet_embed_code(page["id"], tweet_embed_code)
+    if link_to_tweet:
+        logger.info("Adding tweet url")
+        notion_service.add_tweet_url(page["id"], link_to_tweet)
 
     # レスポンスを返す
     return NotionPageResponse(id=page["id"])
