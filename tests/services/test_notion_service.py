@@ -93,4 +93,4 @@ def test_add_tweet_url_with_api_error(monkeypatch):
     
     with pytest.raises(NotionAPIException) as exc_info:
         notion_service.add_tweet_url(page_id, link_to_tweet)
-    assert "Failed to add tweet URL" in str(exc_info.value)
+    assert "Failed to add embed tweet" in str(exc_info.value)
