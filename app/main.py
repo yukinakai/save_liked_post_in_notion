@@ -96,13 +96,21 @@ async def webhook_post(request: Request):
             
         # 順序に従ってデータを構築
         data = {
-            "text": fields[0],
-            "userName": fields[1],
-            "linkToTweet": fields[2],
-            "createdAt": created_at,
-            "tweetEmbedCode": fields[4]
+            "text": fields[0].strip(),
+            "userName": fields[1].strip(),
+            "linkToTweet": fields[2].strip(),
+            "createdAt": created_at.strip(),
+            "tweetEmbedCode": fields[4].strip()
         }
         
+        # 必須フィールドの空文字チェック
+        required_fields = ["text", "userName", "linkToTweet", "createdAt"]
+        empty_fields = [field for field in required_fields if not data[field]]
+        if empty_fields:
+            error_msg = f"Required fields cannot be empty: {', '.join(empty_fields)}"
+            logging.warning(error_msg)
+            raise ValidationException(error_msg)
+            
         # Tweetモデルとしてバリデーション
         try:
             tweet = Tweet(**data)
