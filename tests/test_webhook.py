@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
 import pytest
 from app.main import app
-import os
+from app.services.notion_service import NotionService
+from app.exceptions import NotionAPIException
 
 @pytest.fixture
 def test_client():
@@ -30,7 +31,6 @@ def test_webhook_post_success(test_client, monkeypatch):
         return True
     
     # モックを適用
-    from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
     monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
@@ -92,7 +92,6 @@ def test_webhook_post_with_formatted_date(test_client, monkeypatch):
         return True
     
     # モックを適用
-    from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
     monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
@@ -114,7 +113,6 @@ def test_webhook_post_notion_api_error(test_client, monkeypatch):
         raise NotionAPIException("Failed to create Notion page", details={"error": "Failed to create Notion page"})
 
     # モックを適用
-    from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
 
     # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode

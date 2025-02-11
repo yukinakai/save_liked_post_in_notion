@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, Dict, Any
 import logging
 import os
@@ -15,7 +15,9 @@ from app.error_handlers import (
     general_exception_handler,
     request_validation_exception_handler
 )
-from app.models import Tweet, NotionPageResponse
+from app.models import Tweet, NotionPageResponse, WebhookRequest
+from app.services.notion_service import NotionService
+from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from fastapi.security.api_key import APIKeyHeader
 
