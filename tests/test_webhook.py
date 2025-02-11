@@ -27,56 +27,42 @@ def test_webhook_post_success(monkeypatch):
     monkeypatch.setattr(NotionService, "add_tweet_embed_code", mock_add_tweet_embed_code)
     
     # 実際のリクエストボディを模擬（改行とダブルクォートを生の状態で含む）
-    raw_body = '''{
-    "text": "This is a test
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''This is a test
 tweet with
-line breaks and "quotes"",
-    "userName": "testuser",
-    "linkToTweet": "https://twitter.com/testuser/status/123456789",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test
-Tweet</blockquote>"
-}'''
+line breaks and "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___https://twitter.com/testuser/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>Test
+Tweet</blockquote>'''
     
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}  # JSONではないのでContent-Typeを変更
     )
     assert response.status_code == 200
     assert response.json() == {"id": "test-page-id"}
 
 def test_webhook_post_missing_field():
-    """必須フィールドが欠けているPOSTリクエストのテスト"""
-    raw_body = '''{
-    "text": "This is a test tweet",
-    "userName": "testuser",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}'''
+    """必須フィールドが欠けているPOSTリクエストのテスト（フィールド数が足りない）"""
+    # フィールドの順序: text, userName, linkToTweet, createdAt（tweetEmbedCodeが欠けている）
+    raw_body = '''This is a test tweet___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___https://twitter.com/testuser/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z'''
     
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422
 
 def test_webhook_post_invalid_date_format():
     """不正な日付フォーマットのテスト"""
-    raw_body = '''{
-    "text": "This is a test
-tweet with "quotes"",
-    "userName": "testuser",
-    "linkToTweet": "https://twitter.com/testuser/status/123456789",
-    "createdAt": "invalid-date",
-    "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''This is a test
+tweet with "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___https://twitter.com/testuser/status/123456789___POST_FIELD_SEPARATOR___invalid-date___POST_FIELD_SEPARATOR___<blockquote>Test Tweet</blockquote>'''
     
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422
     assert response.json() == {
@@ -94,20 +80,15 @@ def test_webhook_post_notion_api_error(monkeypatch):
     from app.services.notion_service import NotionService
     monkeypatch.setattr(NotionService, "create_page", mock_create_page)
 
-    raw_body = '''{
-    "text": "This is a test
-tweet with "quotes"",
-    "userName": "testuser",
-    "linkToTweet": "https://twitter.com/testuser/status/123456789",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test
-Tweet</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''This is a test
+tweet with "quotes"___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___https://twitter.com/testuser/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>Test
+Tweet</blockquote>'''
     
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 500
     assert response.json() == {
@@ -117,17 +98,12 @@ Tweet</blockquote>"
 
 def test_webhook_post_empty_text():
     """空のテキストフィールドのテスト"""
-    raw_body = '''{
-    "text": "",
-    "userName": "testuser",
-    "linkToTweet": "https://twitter.com/testuser/status/123456789",
-    "createdAt": "2025-02-10T13:35:49Z",
-    "tweetEmbedCode": "<blockquote>Test Tweet</blockquote>"
-}'''
+    # フィールドの順序: text, userName, linkToTweet, createdAt, tweetEmbedCode
+    raw_body = '''___POST_FIELD_SEPARATOR___testuser___POST_FIELD_SEPARATOR___https://twitter.com/testuser/status/123456789___POST_FIELD_SEPARATOR___2025-02-10T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>Test Tweet</blockquote>'''
     
     response = client.post(
         "/webhook",
         content=raw_body.encode(),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "text/plain"}
     )
     assert response.status_code == 422

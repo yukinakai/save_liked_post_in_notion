@@ -54,20 +54,34 @@ async def hello_world():
 
 @app.post("/webhook", response_model=NotionPageResponse)
 async def webhook_post(request: Request):
-    # リクエストボディを取得して改行とダブルクォートを正規化
+    """Webhookエンドポイント
+    
+    リクエストボディは以下の順序でフィールドを___POST_FIELD_SEPARATOR___で区切って送信:
+    1. text: ツイートのテキスト
+    2. userName: ユーザー名
+    3. linkToTweet: ツイートへのリンク
+    4. createdAt: 作成日時（ISO形式）
+    5. tweetEmbedCode: 埋め込みコード
+    """
+    # リクエストボディを取得
     body = await request.body()
     body_str = body.decode()
-    normalized_body = (
-        body_str
-        .replace('\r\n', '\\n')
-        .replace('\r', '\\n')
-        .replace('\n', '\\n')
-        .replace('"', '\\"')
-    )
     
     try:
-        # JSONとしてパース
-        data = json.loads(normalized_body)
+        # 区切り文字で分割してフィールドを取得
+        fields = body_str.split('___POST_FIELD_SEPARATOR___')
+        if len(fields) != 5:
+            raise ValidationException("Invalid number of fields in request body")
+            
+        # 順序に従ってデータを構築
+        data = {
+            "text": fields[0],
+            "userName": fields[1],
+            "linkToTweet": fields[2],
+            "createdAt": fields[3],
+            "tweetEmbedCode": fields[4]
+        }
+        
         # Tweetモデルとしてバリデーション
         tweet = Tweet(**data)
         
@@ -83,8 +97,6 @@ async def webhook_post(request: Request):
         notion_service.add_tweet_embed_code(page["id"], tweet.tweetEmbedCode)
 
         return NotionPageResponse(id=page["id"])
-    except json.JSONDecodeError as e:
-        raise ValidationException(f"Invalid JSON format: {str(e)}")
     except ValidationError as e:
         # バリデーションエラーの詳細を確認
         for error in e.errors():
