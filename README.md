@@ -78,6 +78,59 @@ make deploy       # Cloud Runへデプロイ
 
 詳細な使用方法は[GCP環境構築手順](docs/gcp-setup.md)を参照してください。
 
+## デプロイ後の使用方法
+
+### 1. 環境変数の設定
+
+デプロイ環境で以下の環境変数を設定してください：
+
+```bash
+NOTION_API_KEY=your_notion_api_key
+NOTION_DATABASE_ID=your_database_id
+WEBHOOK_API_KEY=your_webhook_api_key  # Webhookの認証に使用
+```
+
+### 2. WebhookエンドポイントへのPOSTリクエスト
+
+以下のフォーマットでPOSTリクエストを送信します：
+
+```bash
+curl -X POST https://your-deployed-url/webhook \
+  -H "Content-Type: text/plain" \
+  -H "X-API-Key: your_webhook_api_key" \
+  -d "ツイートのテキスト___POST_FIELD_SEPARATOR___ユーザー名___POST_FIELD_SEPARATOR___https://twitter.com/user/status/123___POST_FIELD_SEPARATOR___2025-02-11T13:35:49Z___POST_FIELD_SEPARATOR___<blockquote>埋め込みコード</blockquote>"
+```
+
+リクエストボディは以下の5つのフィールドを`___POST_FIELD_SEPARATOR___`で区切って送信します：
+
+1. text: ツイートのテキスト（必須）
+2. userName: ユーザー名
+3. linkToTweet: ツイートへのリンク
+4. createdAt: 作成日時（ISO形式または "Month DD, YYYY at HH:MMAM/PM" 形式）
+5. tweetEmbedCode: 埋め込みコード
+
+### 3. レスポンス
+
+成功時のレスポンス（200 OK）：
+```json
+{
+  "pageId": "created-notion-page-id",
+  "url": "https://notion.so/page-url"
+}
+```
+
+エラー時のレスポンス（401/422）：
+```json
+{
+  "message": "エラーメッセージ",
+  "details": {}
+}
+```
+
+主なエラーケース：
+- 401: API Keyが未指定または無効
+- 422: リクエストボディのフォーマットが不正、必須フィールドが空
+
 ## 開発ガイドライン
 
 ### テスト
