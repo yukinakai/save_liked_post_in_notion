@@ -43,10 +43,10 @@ class NotionService:
         logger.info("Creating new Notion page", extra={"data": data})
         
         required_fields = ["userName", "text", "linkToTweet", "createdAt"]
-        missing_fields = [field for field in required_fields if field not in data]
+        missing_fields = [field for field in required_fields if not data.get(field)]
         
         if missing_fields:
-            error_msg = f"Required fields are missing: {', '.join(missing_fields)}"
+            error_msg = f"Required fields are missing or empty: {', '.join(missing_fields)}"
             logger.error(error_msg, extra={"data": data})
             raise ValidationException(error_msg, {"missing_fields": missing_fields})
             
