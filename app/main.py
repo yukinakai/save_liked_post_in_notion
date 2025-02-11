@@ -130,9 +130,9 @@ async def webhook_post(request: Request):
         # Notionページの作成
         page = notion_service.create_page({
             "text": tweet.text,
-            "user_name": tweet.userName,
-            "link_to_tweet": tweet.linkToTweet,
-            "created_at": tweet.createdAt.isoformat(),
+            "userName": tweet.userName,
+            "linkToTweet": tweet.linkToTweet,
+            "createdAt": tweet.createdAt.isoformat(),
         })
 
         # ツイートの埋め込みコードを追加
