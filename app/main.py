@@ -146,7 +146,7 @@ async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
         notion_service.add_tweet_embed_code(page["id"], tweet_embed_code)
 
     # レスポンスを返す
-    return NotionPageResponse(pageId=page["id"])
+    return NotionPageResponse(id=page["id"])
 
 # Notionのルーターを追加
 app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])
