@@ -83,7 +83,20 @@ async def webhook_post(request: Request):
         }
         
         # Tweetモデルとしてバリデーション
-        tweet = Tweet(**data)
+        try:
+            tweet = Tweet(**data)
+        except ValidationError as e:
+            # バリデーションエラーの詳細を確認
+            for error in e.errors():
+                if error.get("type") == "datetime_from_date_parsing":
+                    return JSONResponse(
+                        status_code=422,
+                        content={
+                            "message": "Invalid date format. Expected ISO format.",
+                            "details": {}
+                        }
+                    )
+            raise ValidationException(f"Invalid Tweet data: {str(e)}")
         
         # Notionページの作成
         page = notion_service.create_page({
@@ -97,18 +110,14 @@ async def webhook_post(request: Request):
         notion_service.add_tweet_embed_code(page["id"], tweet.tweetEmbedCode)
 
         return NotionPageResponse(id=page["id"])
-    except ValidationError as e:
-        # バリデーションエラーの詳細を確認
-        for error in e.errors():
-            if error.get("type") == "datetime_from_date_parsing":
-                return JSONResponse(
-                    status_code=422,
-                    content={
-                        "message": "Invalid date format. Expected ISO format.",
-                        "details": {}
-                    }
-                )
-        raise ValidationException(f"Invalid Tweet data: {str(e)}")
+    except ValidationException as e:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "message": str(e),
+                "details": {}
+            }
+        )
     except Exception as e:
         raise AppException("Failed to create Notion page", 500, {"error": str(e)})
 
