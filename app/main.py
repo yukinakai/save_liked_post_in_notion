@@ -1,7 +1,6 @@
-from fastapi import FastAPI, HTTPException, Request, Security, Depends, Header
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, Field, ValidationError
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import Response
+from pydantic import BaseModel, Field
 from datetime import datetime
 import os
 import uuid
@@ -23,7 +22,6 @@ from app.error_handlers import (
 from app.models import Tweet, NotionPageResponse
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
-import json
 import logging
 from fastapi.security.api_key import APIKeyHeader
 
@@ -67,7 +65,6 @@ def get_api_key(api_key: str = Header(None, alias="X-API-Key")) -> str:
 app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)
 
 # エラーハンドラーを登録
-app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(ValidationException, validation_exception_handler)
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
