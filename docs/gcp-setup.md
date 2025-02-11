@@ -104,6 +104,9 @@ gcloud run deploy webhook-service \
 
 - Cloud RunのサービスはデフォルトでIAM認証が必要です
 - このプロジェクトではIFTTTからのWebhookを受け取るため、`--allow-unauthenticated`フラグを使用しています
+- セキュリティ対策として、WebhookエンドポイントでAPI Key認証を実装しています
+  - リクエストヘッダー`X-API-Key`で認証を行います
+  - API Keyは環境変数`WEBHOOK_API_KEY`で設定します
 - 追加のセキュリティ層として、Webhookエンドポイントで独自の認証トークンを実装することを推奨します
 
 ### 環境変数の設定
@@ -113,7 +116,8 @@ gcloud run deploy webhook-service \
 ```bash
 gcloud run services update webhook-service \
     --set-env-vars="NOTION_API_KEY=your_notion_api_key" \
-    --set-env-vars="WEBHOOK_SECRET=your_webhook_secret"
+    --set-env-vars="NOTION_DATABASE_ID=your_database_id" \
+    --set-env-vars="WEBHOOK_API_KEY=your_webhook_api_key"
 ```
 
 ## 6. 動作確認

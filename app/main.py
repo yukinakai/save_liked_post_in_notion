@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Security, Depends, Header
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError
@@ -25,14 +25,43 @@ from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 import json
 import logging
+from fastapi.security.api_key import APIKeyHeader
+
+# ロガーの設定
+logger = logging.getLogger(__name__)
 
 # 環境変数を読み込む
 load_dotenv()
+
+# NotionServiceのインスタンスを作成
+notion_service = NotionService(
+    api_key=os.getenv("NOTION_API_KEY"),
+    database_id=os.getenv("NOTION_DATABASE_ID")
+)
 
 app = FastAPI(
     title="Save Liked Post in Notion",
     description="いいねしたツイートをNotionのデータベースに保存するAPIサービス"
 )
+
+# API Key認証の設定
+API_KEY_NAME = "X-API-Key"
+
+def get_api_key(api_key: str = Header(None, alias="X-API-Key")) -> str:
+    """API Keyを取得する関数"""
+    if api_key is None:
+        raise HTTPException(
+            status_code=401,
+            detail={"message": "Invalid API Key"}
+        )
+    
+    if api_key != os.getenv("WEBHOOK_API_KEY"):
+        raise HTTPException(
+            status_code=401,
+            detail={"message": "Invalid API Key"}
+        )
+    
+    return api_key
 
 # ミドルウェアを追加
 app.add_middleware(ServerErrorMiddleware, handler=general_exception_handler)
@@ -43,18 +72,16 @@ app.add_exception_handler(ValidationException, validation_exception_handler)
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
-notion_service = NotionService()
-
 @app.get("/")
 async def root():
     return {"message": "Welcome to Save Liked Post in Notion API"}
 
 @app.get("/webhook")
-async def hello_world():
+async def hello_world(api_key: str = Depends(get_api_key)):
     return {"message": "Hello World"}
 
 @app.post("/webhook", response_model=NotionPageResponse)
-async def webhook_post(request: Request):
+async def webhook_post(request: Request, api_key: str = Depends(get_api_key)):
     """Webhookエンドポイント
     
     リクエストボディは以下の順序でフィールドを___POST_FIELD_SEPARATOR___で区切って送信:
@@ -64,91 +91,62 @@ async def webhook_post(request: Request):
     4. createdAt: 作成日時（ISO形式または "Month DD, YYYY at HH:MMAM/PM" 形式）
     5. tweetEmbedCode: 埋め込みコード
     """
-    # リクエストボディを取得
+    # リクエストボディをテキストとして読み取る
     body = await request.body()
-    body_str = body.decode()
+    raw_text = body.decode()
     
-    # デバッグ用ログ
-    logging.info(f"Received webhook request body: {body_str}")
-    
-    try:
-        # 区切り文字で分割してフィールドを取得
-        fields = body_str.split('___POST_FIELD_SEPARATOR___')
-        logging.info(f"Split fields count: {len(fields)}")
-        
-        if len(fields) != 5:
-            error_msg = f"Invalid number of fields in request body: expected 5, got {len(fields)}"
-            logging.warning(error_msg)
-            raise ValidationException(error_msg)
-            
-        # createdAtフィールドの日付フォーマットを変換
-        created_at = fields[3]
-        try:
-            # "Month DD, YYYY at HH:MMAM/PM" 形式の場合、ISO形式に変換
-            if "at" in created_at:
-                from datetime import datetime
-                dt = datetime.strptime(created_at, "%B %d, %Y at %I:%M%p")
-                created_at = dt.isoformat()
-        except ValueError as e:
-            logging.warning(f"Failed to parse date: {created_at}")
-            # 変換に失敗した場合は、そのままの値を使用（Pydanticのバリデーションで処理）
-            pass
-            
-        # 順序に従ってデータを構築
-        data = {
-            "text": fields[0].strip(),
-            "userName": fields[1].strip(),
-            "linkToTweet": fields[2].strip(),
-            "createdAt": created_at.strip(),
-            "tweetEmbedCode": fields[4].strip()
-        }
-        
-        # 必須フィールドの空文字チェック
-        required_fields = ["text", "userName", "linkToTweet", "createdAt"]
-        empty_fields = [field for field in required_fields if not data[field]]
-        if empty_fields:
-            error_msg = f"Required fields cannot be empty: {', '.join(empty_fields)}"
-            logging.warning(error_msg)
-            raise ValidationException(error_msg)
-            
-        # Tweetモデルとしてバリデーション
-        try:
-            tweet = Tweet(**data)
-        except ValidationError as e:
-            # バリデーションエラーの詳細を確認
-            for error in e.errors():
-                if error.get("type") == "datetime_from_date_parsing":
-                    return JSONResponse(
-                        status_code=422,
-                        content={
-                            "message": "Invalid date format. Expected ISO format.",
-                            "details": {}
-                        }
-                    )
-            raise ValidationException(f"Invalid Tweet data: {str(e)}")
-        
-        # Notionページの作成
-        page = notion_service.create_page({
-            "text": tweet.text,
-            "userName": tweet.userName,
-            "linkToTweet": tweet.linkToTweet,
-            "createdAt": tweet.createdAt.isoformat(),
-        })
-
-        # ツイートの埋め込みコードを追加
-        notion_service.add_tweet_embed_code(page["id"], tweet.tweetEmbedCode)
-
-        return NotionPageResponse(id=page["id"])
-    except ValidationException as e:
-        return JSONResponse(
-            status_code=422,
-            content={
-                "message": str(e),
-                "details": {}
-            }
+    # フィールドを分割
+    fields = raw_text.split("___POST_FIELD_SEPARATOR___")
+    if len(fields) != 5:
+        raise ValidationException(
+            "Invalid request format. Expected 5 fields separated by ___POST_FIELD_SEPARATOR___",
+            details={"received_fields": len(fields)}
         )
-    except Exception as e:
-        raise AppException("Failed to create Notion page", 500, {"error": str(e)})
+    
+    # フィールドを取り出す
+    text, user_name, link_to_tweet, created_at, tweet_embed_code = fields
+
+    # 必須フィールドのバリデーション
+    if not text:
+        raise ValidationException(
+            "Text field cannot be empty",
+            details={}
+        )
+
+    # 日付フォーマットを検証して変換
+    try:
+        # まずISO形式として解析を試みる
+        parsed_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+    except ValueError:
+        try:
+            # 次にMonth DD, YYYY at HH:MMAM/PM形式として解析を試みる
+            parsed_date = datetime.strptime(created_at, "%B %d, %Y at %I:%M%p")
+        except ValueError:
+            raise ValidationException(
+                "Invalid date format. Expected ISO format.",
+                details={}
+            )
+    
+    # Tweetモデルを作成
+    tweet = Tweet(
+        text=text,
+        userName=user_name,
+        linkToTweet=link_to_tweet,
+        createdAt=parsed_date.isoformat(),
+        tweetEmbedCode=tweet_embed_code
+    )
+    
+    # NotionServiceを初期化してページを作成
+    logger.info("Creating new Notion page")
+    page = notion_service.create_page(tweet.model_dump())  # Pydanticモデルを辞書に変換
+
+    # 埋め込みコードを追加
+    if tweet_embed_code:
+        logger.info("Adding tweet embed code")
+        notion_service.add_tweet_embed_code(page["id"], tweet_embed_code)
+
+    # レスポンスを返す
+    return NotionPageResponse(id=page["id"])
 
 # Notionのルーターを追加
 app.include_router(notion.router, prefix="/api/v1/notion", tags=["notion"])

@@ -1,22 +1,22 @@
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from notion_client import Client
 from notion_client.errors import APIResponseError
 from ..exceptions import NotionAPIException, ValidationException, ConfigurationException
 from ..logging_config import logger
 
 class NotionService:
-    def __init__(self):
-        api_key = os.getenv("NOTION_API_KEY")
-        self.database_id = os.getenv("NOTION_DATABASE_ID")
+    def __init__(self, api_key: Optional[str] = None, database_id: Optional[str] = None):
+        self.api_key = api_key or os.getenv("NOTION_API_KEY")
+        self.database_id = database_id or os.getenv("NOTION_DATABASE_ID")
         
-        if not api_key:
+        if not self.api_key:
             raise ConfigurationException("NOTION_API_KEY is not set")
         if not self.database_id:
             raise ConfigurationException("NOTION_DATABASE_ID is not set")
         
         try:
-            self.notion = Client(auth=api_key)
+            self.notion = Client(auth=self.api_key)
             logger.info("NotionService initialized successfully")
         except Exception as e:
             logger.error("Failed to initialize NotionService", exc_info=True)
@@ -74,7 +74,7 @@ class NotionService:
             },
             "Tweeted_at": {
                 "date": {
-                    "start": data["createdAt"]
+                    "start": data["createdAt"].isoformat() if hasattr(data["createdAt"], "isoformat") else data["createdAt"]
                 }
             }
         }
